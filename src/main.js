@@ -43,7 +43,15 @@ const partners = [
   ['IOH','Southbound supplier','Indonesia','4 products','Live','7/7'],['AIS Thailand','Southbound supplier','Thailand','2 products','Live','7/7'],['Telkomsel','Southbound supplier','Indonesia','3 products','Live','7/7'],['Bank buyer','Northbound buyer','Indonesia','2 use cases','Sandbox','6/7'],['myIM3 / IM3 Travel','Northbound buyer','Indonesia','1 use case','Live','7/7'],['Bangkok Matchday','Benefit provider','Thailand','1 action','Review','5/7']
 ];
 
-let state = { journey:'travel', page:'overview', onboarding:'supplier', modal:false, builderNode:'arrival' };
+let state = { journey:'travel', page:'overview', onboarding:'supplier', modal:false, builderNode:'arrival', connectFrom:null,
+ flowNodes:[
+  {id:'n1',signal:'consent',x:70,y:265},{id:'n2',signal:'arrival',x:315,y:265},
+  {id:'n3',signal:'capability',x:560,y:265},{id:'n4',signal:'voucherEligibility',x:805,y:265},
+  {id:'n5',signal:'fulfilment',x:1050,y:265},{id:'n6',signal:'activation',x:1295,y:265},
+  {id:'n7',signal:'voucherIssue',x:1540,y:265},{id:'n8',signal:'receipt',x:1785,y:265}
+ ],
+ flowLinks:[['n1','n2'],['n2','n3'],['n3','n4'],['n4','n5'],['n5','n6'],['n6','n7'],['n7','n8']]
+};
 const icon = {home:'⌂',partner:'◉',catalogue:'▤',exchange:'↔',money:'◒',mobile:'◌',trust:'◇',admin:'⚙',check:'✓',arrow:'→',lock:'⌾',more:'•••',close:'×',download:'⇩',add:'+'};
 const i = name => icon[name] || '•';
 const pill = (text, tone='good') => `<span class="pill ${tone}">${text}</span>`;
@@ -115,6 +123,28 @@ function signalBuilder(){
  return `<section class="builder-shell"><div class="builder-topbar"><button class="builder-back" data-page="catalogue">×</button><div class="flow-name"><small>JOURNEY NAME</small><b>Thailand Football Traveller</b><span>Draft v1 · Not published</span></div><div class="builder-actions"><button class="outline-action">✓ Validate</button><button class="outline-action">▣ Save draft</button><button class="publish-action">↗ Publish version</button></div></div><section class="builder-workspace"><aside class="signal-library"><div class="library-title"><h2>Signal library</h2><p>Drag a governed signal or action into the journey. Every block has an owner, policy and commercial unit.</p></div><label class="signal-search">⌕ <input placeholder="Search signals"/></label><p class="library-group">TRUST & CONSENT</p>${item('consent','✓')}<p class="library-group">ROAMING & eSIM</p>${item('arrival','⌁')}${item('capability','▣')}${item('fulfilment','⇧')}${item('activation','●')}<p class="library-group">NETWORK ID & RISK</p>${item('numberVerify','✓')}${item('simSwap','↔')}<p class="library-group">BENEFIT ENTITLEMENT</p>${item('voucherEligibility','?')}${item('voucherIssue','★')}${item('receipt','◇')}<div class="library-note"><b>⌾ Supplier-published signals only</b><p>AIX exposes governed outcomes, never raw data feeds.</p></div></aside><main class="journey-canvas"><div class="canvas-tools"><button>Fit view</button><button>▤ Auto-layout</button><span>${pill('Policy safe','good')}</span></div><div class="canvas-grid signal-flow"><article class="journey-node start-node"><span>START</span><b>myIM3 traveller opens offer</b><small>Purpose and journey context created</small><footer><em>Start</em><i>↓</i></footer></article>${canvasNode('consent','consent-node')}${canvasNode('arrival','decision-node')}${canvasNode('capability','decision-node')}${canvasNode('voucherEligibility','benefit-node')}${canvasNode('fulfilment','action-node')}${canvasNode('activation','action-node')}${canvasNode('voucherIssue','benefit-node')}${canvasNode('receipt','receipt-node')}</div><div class="canvas-legend"><span>Supplier signal</span><span>Supplier action</span><span>AIX governance</span></div></main><aside class="node-config"><div class="config-header"><div><h2>Signal configuration</h2><p>${n[1]}</p></div><button>×</button></div><div class="config-body"><p class="config-intro">${n[5]}</p><label>Signal label<input value="${n[0]}"/></label><label>Published by<input value="${n[2]}" readonly/></label><label>Permitted result<input value="${n[3]}" readonly/></label><label>Metered unit<input value="${n[4]}" readonly/></label><section class="config-safe"><b>⌾ AIX policy check</b><p>Purpose, market, consent receipt and published signal conditions are checked before the request is sent to ${n[2]}.</p></section></div><button class="apply-config">Apply configuration</button></aside></section></section>`;
 }
 
+function interactiveBuilder(){
+ const signals={
+  consent:{label:'Consent check',group:'TRUST & CONSENT',owner:'AIX Trust Layer',result:'Valid receipt or decline',unit:'Policy execution',icon:'✓'},
+  arrival:{label:'Roaming arrival confirmed',group:'ROAMING & eSIM',owner:'AIS Thailand',result:'Thailand arrival: yes / no',unit:'THB 6 per confirmation',icon:'⌁'},
+  capability:{label:'eSIM capability check',group:'ROAMING & eSIM',owner:'AIS Thailand',result:'eSIM capable: yes / no',unit:'THB 4 per check',icon:'▣'},
+  fulfilment:{label:'eSIM fulfilment',group:'ROAMING & eSIM',owner:'AIS Thailand',result:'Provisioning order reference',unit:'THB 525 per active eSIM',icon:'⇧'},
+  activation:{label:'Activation status',group:'ROAMING & eSIM',owner:'AIS Thailand',result:'Active, pending or failed',unit:'Included with fulfilment',icon:'●'},
+  voucherEligibility:{label:'Voucher eligibility',group:'BENEFIT ENTITLEMENT',owner:'Bangkok Matchday',result:'Eligible: yes / no',unit:'THB 8 per check',icon:'?'},
+  voucherIssue:{label:'Voucher issue',group:'BENEFIT ENTITLEMENT',owner:'Bangkok Matchday',result:'Voucher code and expiry',unit:'THB 96 per voucher',icon:'★'},
+  numberVerify:{label:'Number verify',group:'NETWORK ID & RISK',owner:'IOH Indonesia',result:'Verified: yes / no',unit:'THB 3 per session',icon:'✓'},
+  simSwap:{label:'SIM swap check',group:'NETWORK ID & RISK',owner:'Telkomsel',result:'Risk window outcome',unit:'THB 3 per result',icon:'↔'},
+  receipt:{label:'Trusted Decision Receipt',group:'EVIDENCE & SETTLEMENT',owner:'AIX',result:'Receipt ID and meter IDs',unit:'THB 50 per journey',icon:'◇'}
+ };
+ const current=signals[state.builderNode]||signals.arrival;
+ const groups=['TRUST & CONSENT','ROAMING & eSIM','NETWORK ID & RISK','BENEFIT ENTITLEMENT','EVIDENCE & SETTLEMENT'];
+ const library=groups.map(group=>'<p class="library-group">'+group+'</p>'+Object.entries(signals).filter(([,v])=>v.group===group).map(([key,v])=>'<button draggable="true" class="library-item '+(state.builderNode===key?'chosen':'')+'" data-library-signal="'+key+'"><i>'+v.icon+'</i><span><b>'+v.label+'</b><small>'+v.owner+'</small></span><em>›</em></button>').join('')).join('');
+ const get=id=>state.flowNodes.find(n=>n.id===id);
+ const paths=state.flowLinks.map(([from,to])=>{const a=get(from),b=get(to);if(!a||!b)return '';const sx=a.x+188,sy=a.y+72,tx=b.x,ty=b.y+72;return '<path d="M '+sx+' '+sy+' C '+(sx+70)+' '+sy+', '+(tx-70)+' '+ty+', '+tx+' '+ty+'" />'}).join('');
+ const canvasNodes=state.flowNodes.map(node=>{const s=signals[node.signal];return '<article draggable="true" class="flow-canvas-node '+(state.builderNode===node.signal?'selected-node':'')+'" data-flow-node="'+node.id+'" style="left:'+node.x+'px;top:'+node.y+'px"><button class="port port-in" data-port-input="'+node.id+'" title="Connect here"></button><span>'+s.group+'</span><b>'+s.label+'</b><small>'+s.result+'</small><em>'+s.owner+'</em><button class="port port-out" data-port-output="'+node.id+'" title="Connect from here"></button></article>'}).join('');
+ return `<section class="builder-shell"><div class="builder-topbar"><button class="builder-back" data-page="catalogue">×</button><div class="flow-name"><small>FLOW NAME</small><b>Thailand Football Traveller</b><span>Draft v1 · Not published</span></div><div class="builder-actions"><button class="outline-action">✓ Validate</button><button class="outline-action">▣ Save draft</button><button class="publish-action">↗ Publish version</button></div></div><section class="builder-workspace neu-workspace"><aside class="signal-library"><div class="library-title"><h2>Signal library</h2><p>Drag a block—or click it—to add it to the canvas.</p></div><label class="signal-search">⌕ <input placeholder="Search signals"/></label>${library}<div class="library-note"><b>⌾ Only governed signals</b><p>Every block has a supplier, permitted result, policy and price.</p></div></aside><main class="journey-canvas"><div class="canvas-tools"><button>Fit view</button><button data-auto-layout>▤ Auto-layout</button><span>${state.connectFrom?'Select an input port to connect':'Drag, move or connect nodes'}</span></div><div class="flow-stage" data-flow-canvas><svg class="flow-links" viewBox="0 0 2100 650" preserveAspectRatio="none"><defs><marker id="flow-arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="#8190a8"/></marker></defs>${paths}</svg>${canvasNodes}</div><div class="canvas-legend"><span>Drag blocks to add</span><span>Drag nodes to move</span><span>Click output ● then input ○ to connect</span></div></main><aside class="node-config"><div class="config-header"><div><h2>Node configuration</h2><p>${current.group}</p></div><button>×</button></div><div class="config-body"><p class="config-intro">Supplier-published governed signal. AIX invokes it only after the required policy checks pass.</p><label>Node label<input value="${current.label}"/></label><label>Published by<input value="${current.owner}" readonly/></label><label>Permitted result<input value="${current.result}" readonly/></label><label>Metered unit<input value="${current.unit}" readonly/></label><section class="config-safe"><b>⌾ Before every call</b><p>AIX checks consent, purpose, market, product policy and the buyer’s scope. The supplier returns only this approved result.</p></section></div><button class="apply-config">Apply configuration</button></aside></section></section>`;
+}
+
 function simpleDashboard(){
  return '<section class="exec-head"><div><p class="eyebrow">AIX COMMERCE CONSOLE</p><h1>Exchange health, at a glance.</h1><p>See connected suppliers, published API and SDK products, usage, revenue, and governed agent actions.</p></div><div class="exec-period"><span>● Live sandbox</span><b>Last 30 days ⌄</b></div></section>'+
  '<section class="executive-metrics"><article><small>CONNECTED SUPPLIERS</small><b>6</b><p><strong>5 live</strong> · 1 under review</p><button data-page="onboarding">View suppliers →</button></article><article><small>PUBLISHED API & SDK PRODUCTS</small><b>7</b><p><strong>5 APIs</strong> · 2 mobile SDK journeys</p><button data-page="catalogue">View products →</button></article><article><small>GOVERNED API USAGE</small><b>42,318</b><p><strong>99.7%</strong> policy pass rate</p><button data-page="metering">View all usage →</button></article><article><small>REVENUE READY TO SETTLE</small><b>THB 1.86M</b><p><strong>THB 186K</strong> current netting run</p><button data-page="metering">View settlement →</button></article></section>'+
@@ -126,7 +156,7 @@ function simpleDashboard(){
 }
 
 function render(){
- const j=journeys[state.journey]; const pages={overview:simpleDashboard(),onboarding:onboarding(),catalogue:catalogue(),builder:signalBuilder(),exchange:exchange(j),metering:metering(j),evidence:evidence(j),agents:agents(),admin:admin()};
+ const j=journeys[state.journey]; const pages={overview:simpleDashboard(),onboarding:onboarding(),catalogue:catalogue(),builder:interactiveBuilder(),exchange:exchange(j),metering:metering(j),evidence:evidence(j),agents:agents(),admin:admin()};
  document.querySelector('#app').innerHTML=`<div class="app-shell"><aside class="sidebar"><a class="brand"><span>AIX</span><div><b>Commerce Console</b><small>Trusted Intelligence</small></div></a><div class="environment"><i></i> Production demo <b>⌄</b></div><nav><label>OVERVIEW</label>${nav('overview','Executive dashboard','home')}<label>ECOSYSTEM</label>${nav('onboarding','Connected partners','partner')}${nav('catalogue','Products & integrations','catalogue')}${nav('builder','Journey builder','catalogue')}<label>OPERATIONS</label>${nav('exchange','Orders & fulfilment','exchange')}${nav('metering','Usage & revenue','money')}<label>ASSURANCE</label>${nav('evidence','Activity & audit log','trust')}${nav('agents','Agent controls','mobile')}<label>ADMIN</label>${nav('admin','Access & sandbox','admin')}</nav><div class="user"><span>SW</span><div><b>Syahrier Wakid</b><small>AIX Platform Lead</small></div></div></aside><main><header><div class="breadcrumb">AIX / <b>${state.page.replaceAll('-',' ')}</b></div><div class="header-actions"><button>⌕</button><button class="notice">◔<i></i></button><button class="avatar-button">SW</button></div></header><div class="content">${pages[state.page]}</div></main></div>`; bind();
 }
 function bind(){
@@ -134,6 +164,27 @@ function bind(){
  document.querySelectorAll('[data-onboard]').forEach(b=>b.onclick=()=>{state.onboarding=b.dataset.onboard;render()});
  document.querySelectorAll('[data-journey]').forEach(b=>b.onclick=()=>{state.journey=b.dataset.journey;render()});
  document.querySelectorAll('[data-builder-node]').forEach(b=>b.onclick=()=>{state.builderNode=b.dataset.builderNode;render()});
+ document.querySelectorAll('[data-library-signal]').forEach(item=>{
+   const addSignal=signal=>{const offset=state.flowNodes.length*38;const id='n'+Date.now();state.flowNodes.push({id,signal,x:140+offset,y:430+(offset%2)*95});state.builderNode=signal;render()};
+   item.onclick=()=>addSignal(item.dataset.librarySignal);
+   item.ondragstart=e=>{e.dataTransfer.setData('aix-library-signal',item.dataset.librarySignal);e.dataTransfer.effectAllowed='copy'};
+ });
+ const canvas=document.querySelector('[data-flow-canvas]');
+ if(canvas){
+   canvas.ondragover=e=>{e.preventDefault();e.dataTransfer.dropEffect='copy'};
+   canvas.ondrop=e=>{
+     e.preventDefault();const rect=canvas.getBoundingClientRect();const moving=e.dataTransfer.getData('aix-flow-node');const signal=e.dataTransfer.getData('aix-library-signal');
+     if(moving){const node=state.flowNodes.find(n=>n.id===moving);if(node){node.x=Math.max(18,e.clientX-rect.left-92);node.y=Math.max(30,e.clientY-rect.top-48);render()}}
+     if(signal){const id='n'+Date.now();state.flowNodes.push({id,signal,x:Math.max(18,e.clientX-rect.left-92),y:Math.max(30,e.clientY-rect.top-48)});state.builderNode=signal;render()}
+   };
+ }
+ document.querySelectorAll('[data-flow-node]').forEach(node=>{
+   node.ondragstart=e=>{e.dataTransfer.setData('aix-flow-node',node.dataset.flowNode);e.dataTransfer.effectAllowed='move'};
+   node.onclick=e=>{if(e.target.closest('.port'))return;const selected=state.flowNodes.find(n=>n.id===node.dataset.flowNode);if(selected){state.builderNode=selected.signal;render()}};
+ });
+ document.querySelectorAll('[data-port-output]').forEach(port=>port.onclick=e=>{e.stopPropagation();state.connectFrom=port.dataset.portOutput;render()});
+ document.querySelectorAll('[data-port-input]').forEach(port=>port.onclick=e=>{e.stopPropagation();const to=port.dataset.portInput;if(state.connectFrom&&state.connectFrom!==to&&!state.flowLinks.some(x=>x[0]===state.connectFrom&&x[1]===to))state.flowLinks.push([state.connectFrom,to]);state.connectFrom=null;render()});
+ const auto=document.querySelector('[data-auto-layout]');if(auto)auto.onclick=()=>{state.flowNodes.forEach((n,index)=>{n.x=70+index*245;n.y=265});state.flowLinks=state.flowNodes.slice(1).map((n,index)=>[state.flowNodes[index].id,n.id]);render()};
  const scenario=document.querySelector('#scenarioBtn'), list=document.querySelector('#scenarioList');if(scenario)scenario.onclick=()=>list.classList.toggle('show');
 }
 render();
